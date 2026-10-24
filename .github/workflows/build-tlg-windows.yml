@@ -1,0 +1,38 @@
+# Build The Last Guardian PC port on a GitHub-hosted Windows runner.
+# Create this file at .github/workflows/build-tlg-windows.yml in your own repository.
+# Manual trigger only; no game files are downloaded or included.
+name: Build TLG-Port for Windows
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2025
+    timeout-minutes: 120
+    steps:
+      - name: Get official TLG-Port v0.7.0 source
+        uses: actions/checkout@v4
+        with:
+          repository: SulphurS16/TLG-Port
+          ref: v0.7.0
+          persist-credentials: false
+
+      - name: Download and verify project toolchains
+        shell: pwsh
+        run: .\tools\bootstrap.ps1
+
+      - name: Compile and package Windows binaries
+        shell: pwsh
+        run: .\tools\package.ps1
+
+      - name: Upload self-compiled package
+        uses: actions/upload-artifact@v4
+        with:
+          name: TLG-Port-0.7.0-self-compiled
+          path: dist/TLG-Port-0.7.0.zip
+          if-no-files-found: error
+          retention-days: 7
